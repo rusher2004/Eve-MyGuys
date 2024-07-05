@@ -2,6 +2,7 @@ package server
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -40,11 +41,11 @@ func getOAuthToken(code string) (oauthToken, error) {
 	// move this to startup
 	id, ok := os.LookupEnv("ESI_CLIENT_ID")
 	if !ok {
-		return oauthToken{}, fmt.Errorf("ESI_CLIENT_ID not set")
+		return oauthToken{}, errors.New("ESI_CLIENT_ID not set")
 	}
 	secret, ok := os.LookupEnv("ESI_CLIENT_SECRET")
 	if !ok {
-		return oauthToken{}, fmt.Errorf("ESI_CLIENT_SECRET not set")
+		return oauthToken{}, errors.New("ESI_CLIENT_SECRET not set")
 	}
 
 	cl := http.Client{Timeout: 5 * time.Second}
