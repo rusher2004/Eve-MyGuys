@@ -32,6 +32,10 @@ func (s *Server) routes() {
 		json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
 	})
 
+	r.Route("/auth", func(r chi.Router) {
+		r.Get("/callback", handleGetAuthCallback)
+	})
+
 	s.router = r
 }
 

@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 
+	_ "github.com/joho/godotenv/autoload"
 	"github.com/rusher2004/Eve-MyGuys/server/server"
 )
 
