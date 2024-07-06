@@ -21,6 +21,10 @@ type oauthToken struct {
 }
 
 func handleGetAuthCallback(w http.ResponseWriter, r *http.Request) {
+	type response struct {
+		AccessToken string `json:"accessToken"`
+	}
+
 	code, ok := r.URL.Query()["code"]
 	if !ok || len(code) < 1 {
 		log.Println("URL Param 'code' is missing")
@@ -34,7 +38,9 @@ func handleGetAuthCallback(w http.ResponseWriter, r *http.Request) {
 	}
 	log.Printf("got token: %+v", token)
 
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(response{AccessToken: token.AccessToken})
 }
 
 func getOAuthToken(code string) (oauthToken, error) {
