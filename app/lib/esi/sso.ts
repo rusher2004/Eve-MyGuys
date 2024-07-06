@@ -43,8 +43,8 @@ const scopes = [
   "esi-characterstats.read.v1",
 ];
 
-export function getLoginUrl() {
-  const redirectURI = process.env.ESI_CALLBACK_URL;
+export function getLoginUrl(origin: string) {
+  const redirectURI = origin + "/auth/callback";
   const clientID = process.env.ESI_CLIENT_ID;
   const scope = scopes.join(" ");
   const state = crypto.randomUUID();
