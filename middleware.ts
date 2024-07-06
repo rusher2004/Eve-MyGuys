@@ -4,6 +4,7 @@ import type { NextRequest } from "next/server";
 export function middleware(request: NextRequest) {
   // Add a new header x-current-path which passes the path to downstream components
   const headers = new Headers(request.headers);
+  console.log("middleware.ts: origin", request.nextUrl.origin);
   headers.set("x-current-origin", request.nextUrl.origin);
   return NextResponse.next({ headers });
 }
