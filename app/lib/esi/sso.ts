@@ -1,4 +1,6 @@
-import { OAuthToken } from "@/app/lib/definitions";
+import { get } from "@/app/lib/kv";
+import { jwtDecode } from "jwt-decode";
+import { JWTToken, OAuthGrantType, OAuthToken } from "@/app/lib/definitions";
 
 const scopes = [
   "publicData",
@@ -43,6 +45,10 @@ const scopes = [
   "esi-characterstats.read.v1",
 ];
 
+export function charIDFromJWTSub(sub: string) {
+  return sub.split(":")[2];
+}
+
 export function getLoginUrl(origin: string) {
   const redirectURI = origin + "/auth/callback";
   const clientID = process.env.ESI_CLIENT_ID;
@@ -52,13 +58,19 @@ export function getLoginUrl(origin: string) {
   return `https://login.eveonline.com/v2/oauth/authorize/?response_type=code&redirect_uri=${redirectURI}&client_id=${clientID}&scope=${scope}&state=${state}`;
 }
 
-export async function getOAuthToken(code: string) {
+export async function fetchOAuthToken(
+  code: string,
+  grantType: OAuthGrantType
+): Promise<OAuthToken> {
   try {
     const clientID = process.env.ESI_CLIENT_ID;
     const clientSecret = process.env.ESI_SECRET_KEY;
     const params = new URLSearchParams({
-      grant_type: "authorization_code",
-      code: code,
+      grant_type: grantType,
+      // if grantType is Authorization, the payload needs the code property.  if grantType is Refresh,
+      // the payload needs the refresh_token property
+      ...(grantType === OAuthGrantType.Authorization && { code }),
+      ...(grantType === OAuthGrantType.Refresh && { refresh_token: code }),
     });
 
     const req = new Request("https://login.eveonline.com/v2/oauth/token", {
@@ -81,6 +93,49 @@ export async function getOAuthToken(code: string) {
 
     return (await response.json()) as OAuthToken;
   } catch (error) {
-    console.error("getOAuthToken error", error);
+    console.error("fetchOAuthToken error", error);
+    throw new Error("Failed to fetch token", { cause: error });
+  }
+}
+
+/**
+ * Returns the token if it is still valid, otherwise refreshes it using the refresh token
+ * @param token JWT token
+ * @returns JWT token
+ */
+export async function getAccessOrRefreshToken(token: string): Promise<string> {
+  const decoded = jwtDecode(token) as JWTToken;
+  const now = Math.floor(Date.now() / 1000);
+
+  if (decoded.exp - now < 60) {
+    return await refreshToken(decoded);
+  }
+
+  return token;
+}
+
+export async function refreshToken(token: JWTToken): Promise<string> {
+  try {
+    const { sub } = token;
+    const charID = charIDFromJWTSub(sub);
+
+    const kvToken = await get<OAuthToken>("esi_token_" + charID);
+    if (!kvToken?.refresh_token) {
+      throw new Error("No refresh token found");
+    }
+
+    const newToken = await fetchOAuthToken(
+      kvToken.refresh_token,
+      OAuthGrantType.Refresh
+    );
+
+    if (!newToken?.access_token) {
+      throw new Error("No access token found in response");
+    }
+
+    return newToken.access_token;
+  } catch (error) {
+    console.error("refreshToken error", error);
+    throw new Error("Failed to refresh token", { cause: error });
   }
 }
