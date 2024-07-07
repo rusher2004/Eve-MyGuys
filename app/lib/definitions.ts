@@ -1,6 +1,16 @@
+export type Alliance = {
+  creator_corporation_id: number;
+  creator_id: number;
+  date_founded: string;
+  executor_corporation_id?: number;
+  faction_id?: number;
+  name: string;
+  ticker: string;
+};
+
 export type Character = {
   alliance_id: number;
-  birthday: Date;
+  birthday: string;
   bloodline_id: number;
   corporation_id: number;
   description: string;
@@ -8,6 +18,30 @@ export type Character = {
   name: string;
   race_id: number;
   security_status: number;
+};
+
+export type CharacterAffiliation = {
+  alliance_id?: number;
+  character_id: number;
+  corporation_id: number;
+  faction_id?: number;
+};
+
+export type Corporation = {
+  alliance_id?: number;
+  ceo_id: number;
+  creator_id: number;
+  date_founded?: string;
+  description?: string;
+  faction_id?: number;
+  home_station_id?: number;
+  member_count: number;
+  name: string;
+  shares?: number;
+  tax_rate: number;
+  ticker: string;
+  url?: string;
+  war_eligible?: boolean;
 };
 
 export type JWTToken = {
@@ -40,12 +74,12 @@ export enum OAuthGrantType {
 }
 
 export type SkillQueueItem = {
-  finish_date?: Date;
+  finish_date?: string;
   finished_level: number;
   level_end_sp?: number;
   level_start_sp?: number;
   queue_position: number;
   skill_id: number;
-  start_date?: Date;
+  start_date?: string;
   training_start_sp?: number;
 };

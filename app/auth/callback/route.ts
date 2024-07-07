@@ -1,5 +1,5 @@
 import { charIDFromJWTSub, fetchOAuthToken } from "@/app/lib/esi/sso";
-import { get, setKV } from "@/app/lib/kv";
+import { setKV } from "@/app/lib/kv";
 import { NextResponse } from "next/server";
 import { jwtDecode } from "jwt-decode";
 import { JWTToken, OAuthGrantType } from "@/app/lib/definitions";
@@ -41,11 +41,10 @@ export async function GET(request: Request) {
       secure: process.env.NODE_ENV === "production",
     });
 
-    await setKV(
-      key,
-      { access_token: token.access_token, refresh_token: token.refresh_token },
-      token.expires_in
-    );
+    await setKV(key, {
+      access_token: token.access_token,
+      refresh_token: token.refresh_token,
+    });
   }
 
   return response;

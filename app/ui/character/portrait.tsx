@@ -1,6 +1,6 @@
 import Image from "next/image";
 
-export default function Portrait({
+export default function CharacterPortrait({
   id,
   size,
 }: {
@@ -9,6 +9,7 @@ export default function Portrait({
 }) {
   return (
     <Image
+      className="size-28 md:size-44 lg:size-48"
       src={`https://images.evetech.net/characters/${id}/portrait?tenant=tranquility&size=${size}`}
       alt="Character portrait"
       width={512}

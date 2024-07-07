@@ -1,5 +1,9 @@
 import { cookies } from "next/headers";
-import { Character, SkillQueueItem } from "../definitions";
+import {
+  Character,
+  CharacterAffiliation,
+  SkillQueueItem,
+} from "../definitions";
 import { getAccessOrRefreshToken } from "./sso";
 
 export async function fetchCharacter(id: string) {
@@ -25,6 +29,45 @@ export async function fetchCharacter(id: string) {
   }
 
   return (await response.json()) as Character;
+}
+
+export async function fetchCharacterAffiliation(id: string) {
+  const token = await getOAuthToken(id);
+
+  const params = new URLSearchParams({
+    datasource: "tranquility",
+    token: token,
+  }).toString();
+
+  const req = new Request(
+    `https://esi.evetech.net/latest/characters/affiliation?${params}`,
+    {
+      method: "POST",
+      headers: {
+        accept: "application/json",
+        "Cache-Control": "no-cache",
+      },
+      body: JSON.stringify([id]),
+    }
+  );
+
+  const response = await fetch(req);
+
+  if (!response.ok) {
+    throw new Error(
+      `Failed to fetch character affiliation: ${response.statusText}`
+    );
+  }
+
+  const resJSON = (await response.json()) as CharacterAffiliation[];
+
+  if (!Array.isArray(resJSON) || resJSON.length !== 1) {
+    throw new Error(
+      "Failed to fetch character affiliation: unexpected response"
+    );
+  }
+
+  return resJSON[0];
 }
 
 export async function fetchSkillQueue(id: string) {

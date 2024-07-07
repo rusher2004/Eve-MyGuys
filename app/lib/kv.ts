@@ -11,10 +11,10 @@ export async function get<T>(key: string): Promise<T | null> {
 export async function setKV<T>(
   key: string,
   value: T,
-  ex: number
+  ex?: number
 ): Promise<"OK" | T | null> {
   try {
-    return await kv.set(key, value, { ex: ex });
+    return await kv.set(key, value);
   } catch (error) {
     throw error;
   }

@@ -1,25 +1,36 @@
-import { fetchCharacter, fetchSkillQueue } from "@/app/lib/esi/character";
-import Portrait from "@/app/ui/character/portrait";
+import {
+  fetchCharacter,
+  fetchCharacterAffiliation,
+} from "@/app/lib/esi/character";
+import CharacterPortrait from "@/app/ui/character/portrait";
+import AllianceInfoTile from "@/app/ui/alliance/info-tile";
+import CorpInfoTile from "@/app/ui/corporation/info-tile";
+import SkillQueue from "@/app/ui/skill/queue";
 
 export default async function Page({ params }: { params: { id: string } }) {
   // fetch character data from ESI
   const character = await fetchCharacter(params.id);
-  const skillQueue = await fetchSkillQueue(params.id);
+  const affiliation = await fetchCharacterAffiliation(params.id);
 
   return (
     <div>
-      <Portrait id={params.id} size={512} />
-      <h1>{character.name}</h1>
-      <ul>
-        {skillQueue.map((skill) => (
-          <li key={skill.queue_position}>
-            <div>
-              <h3>{skill.skill_id}</h3>
-              <sub>{skill.finished_level}</sub>
-            </div>
-          </li>
-        ))}
-      </ul>
+      <header className="flex">
+        <CharacterPortrait id={params.id} size={512} />
+        <div className="flex flex-col gap-1">
+          <h1>{character.name}</h1>
+          <CorpInfoTile id={affiliation.corporation_id} />
+          {affiliation.alliance_id && (
+            <AllianceInfoTile id={affiliation.alliance_id} />
+          )}
+          {/* 
+          {affiliation.faction_id && (
+            <CorpInfoTile id={affiliation.faction_id} />
+          )}
+            TODO: figure out how to get faction name and icon 
+           */}
+        </div>
+      </header>
+      <SkillQueue params={{ charID: params.id }} />
     </div>
   );
 }
